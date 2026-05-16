@@ -19,50 +19,36 @@ Program to implement the multivariate linear regression model for predicting the
 Developed by:MOKESH C
 RegisterNumber:212225240088  
 */
+import numpy as np
 import pandas as pd
+from sklearn.datasets import fetch_california_housing
 from sklearn.linear_model import SGDRegressor
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler
-
-# Load dataset
-data = pd.read_csv("house.csv")
-#print(data.columns)
-data.columns = data.columns.str.strip()
-# Features (inputs)
-X = data[['Size', 'Bedrooms']]
-
-# Targets (outputs)
-y_price = data['Price']
-y_occ = data['Occupants']
-
-# Scaling (important for SGD)
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-
-# Models
-price_model = SGDRegressor(max_iter=1000, learning_rate='constant', eta0=0.01)
-occ_model = SGDRegressor(max_iter=1000, learning_rate='constant', eta0=0.01)
-
-# Train models
-price_model.fit(X_scaled, y_price)
-occ_model.fit(X_scaled, y_occ)
-
-# Input
-size = float(input("Enter house size: "))
-bed = int(input("Enter number of bedrooms: "))
-
-# Scale input
-new_data = scaler.transform([[size, bed]])
-
-# Prediction
-pred_price = price_model.predict(new_data)
-pred_occ = occ_model.predict(new_data)
-
-print("Predicted Price:", pred_price[0])
-print("Predicted Occupants:", round(pred_occ[0]))
+data = fetch_california_housing()
+X = data.data[:, :3]
+Y=np.column_stack((data.target,data.data[:, 6]))
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+scaler_X = StandardScaler()
+scaler_Y = StandardScaler()
+X_train=scaler_X.fit_transform(X_train)
+X_test=scaler_X.transform(X_test)
+Y_train=scaler_Y.fit_transform(Y_train)
+Y_test=scaler_Y.transform(Y_test)
+sgd=SGDRegressor(max_iter=1000, tol=1e-3)
+multi_output_sgd=MultiOutputRegressor(sgd)
+multi_output_sgd.fit(X_train,Y_train)
+Y_pred=multi_output_sgd.predict(X_test)
+Y_pred=scaler_Y.inverse_transform(Y_pred)
+Y_test=scaler_Y.inverse_transform(Y_test)
+print("\nPredictions:\n",Y_pred[:5])
 ```
 
 ## Output:
-<img width="1062" height="79" alt="WhatsApp Image 2026-04-30 at 2 05 52 PM" src="https://github.com/user-attachments/assets/8eb27c46-418a-4cbd-aa34-de38cd61f79a" />
+<img width="379" height="180" alt="Screenshot 2026-05-16 155353" src="https://github.com/user-attachments/assets/3fc0e83f-6710-4535-b431-a73e5295e204" />
+
 
 
 
